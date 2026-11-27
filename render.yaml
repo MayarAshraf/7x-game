@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: 7x-game
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: HOST_KEY
+        value: 7x
