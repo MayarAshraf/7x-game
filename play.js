@@ -35,25 +35,32 @@ if (!cf) {
 }
 
 const server = spawn(process.execPath, [path.join(__dirname, 'server.js')], { stdio: 'inherit', env: { ...process.env, PORT } });
-const tunnel = spawn(cf, ['tunnel', '--no-autoupdate', '--url', `http://localhost:${PORT}`]);
+// http2 instead of the default QUIC (UDP) — many office networks block UDP
+const tunnel = spawn(cf, ['tunnel', '--no-autoupdate', '--protocol', 'http2', '--url', `http://localhost:${PORT}`]);
 
+let publicUrl = null;
 let shown = false;
+console.log('⏳ بنجهّز اللينك الأونلاين…');
 const onOutput = (buf) => {
-  const m = String(buf).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
-  if (m && !shown) {
+  const text = String(buf);
+  const m = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+  if (m && !publicUrl) publicUrl = m[0];
+  if (/\bERR\b/.test(text)) process.stdout.write('⚠️  ' + text);
+  // open only once the tunnel is actually connected to Cloudflare (avoids Error 1033)
+  if (publicUrl && !shown && /Registered tunnel connection/i.test(text)) {
     shown = true;
-    const hostUrl = `${m[0]}/host?key=${HOST_KEY}`;
+    const hostUrl = `${publicUrl}/host?key=${HOST_KEY}`;
     console.log('\n==============================================');
     console.log('🌍 اللعبة أونلاين!');
     console.log(`   شاشة الهوست: ${hostUrl}`);
     console.log('   (الـ QR على الشاشة بيفتح اللينك ده للاعبين)');
     console.log('   سيبي الـ terminal ده مفتوح طول اللعبة — Ctrl+C للإيقاف');
     console.log('==============================================\n');
-    // wait a few seconds so the new DNS name resolves before opening the browser
+    // short pause so the new DNS name propagates before opening the browser
     setTimeout(() => {
       const open = process.platform === 'win32' ? `start "" "${hostUrl}"` : process.platform === 'darwin' ? `open "${hostUrl}"` : `xdg-open "${hostUrl}"`;
       try { execSync(open); } catch {}
-    }, 5000);
+    }, 3000);
   }
 };
 tunnel.stdout.on('data', onOutput);
