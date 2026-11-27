@@ -26,7 +26,10 @@ function topbar() {
   return `
     <div class="topbar">
       <div><span class="logo">7X</span>&nbsp; <span class="tagline" style="font-size:20px"><span class="megz">Megz</span> vs <span class="amora">3mora</span></span></div>
-      ${state.phase !== 'lobby' ? scoreHTML(state.score) : '<span class="by">by 8X CRM</span>'}
+      <div class="topbar-end">
+        ${state.phase !== 'lobby' ? scoreHTML(state.score) : '<span class="by">by 8X CRM</span>'}
+        <button class="btn ghost restart" id="restart" title="ابدأ اللعبة من الأول">🔄 من الأول</button>
+      </div>
     </div>`;
 }
 
@@ -140,6 +143,11 @@ function bind() {
   if (go) go.onclick = next;
   const again = document.getElementById('again');
   if (again) again.onclick = () => socket.emit('host:reset');
+  const restart = document.getElementById('restart');
+  if (restart) restart.onclick = () => {
+    restart.blur();
+    if (confirm('تبدئي اللعبة من الأول؟ النتيجة هتتصفّر واللاعبين هيفضلوا زي ما هما.')) socket.emit('host:reset');
+  };
   const clear = document.getElementById('clear');
   if (clear) clear.onclick = () => { if (confirm('تمسحي كل اللاعبين؟')) socket.emit('host:clearPlayers'); };
 }
