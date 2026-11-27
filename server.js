@@ -40,6 +40,19 @@ let timer = null;
 const durationOf = (i) => (questions[i]?.time || DEFAULT_TIME) * 1000;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+// Comments never repeat within a game. Only if a whole list runs out does that list start over.
+const usedComments = new Set();
+function pickComment(pool) {
+  let fresh = pool.filter((c) => !usedComments.has(c));
+  if (!fresh.length) {
+    pool.forEach((c) => usedComments.delete(c));
+    fresh = pool;
+  }
+  const c = pick(fresh);
+  usedComments.add(c);
+  return c;
+}
+
 function snapshot() {
   const q = questions[game.qIndex];
   return {
@@ -81,10 +94,10 @@ function reveal() {
   const loser = winner === 'megz' ? '3mora' : winner === '3mora' ? 'megz' : null;
 
   let comment;
-  if (m + a === 0) comment = pick(comments.none);
-  else if (winner === 'tie') comment = pick(comments.tie);
-  else if (m + a >= 3 && Math.max(m, a) / (m + a) >= 0.8) comment = pick(comments.landslide);
-  else comment = pick(comments[winner]);
+  if (m + a === 0) comment = pickComment(comments.none);
+  else if (winner === 'tie') comment = pickComment(comments.tie);
+  else if (m + a >= 3 && Math.max(m, a) / (m + a) >= 0.8) comment = pickComment(comments.landslide);
+  else comment = pickComment(comments[winner]);
   comment = comment.replace(/\{winner\}/g, NAMES[winner] || '').replace(/\{loser\}/g, NAMES[loser] || '');
 
   if (winner !== 'tie') game.score[winner]++;
@@ -106,6 +119,7 @@ function reset() {
   clearTimeout(timer);
   Object.assign(game, { phase: 'lobby', qIndex: -1, endsAt: 0, result: null, score: { megz: 0, '3mora': 0 }, history: [] });
   game.votes.clear();
+  usedComments.clear();
   broadcast();
 }
 
