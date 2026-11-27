@@ -33,6 +33,7 @@ function join(name) {
 function vote(choice) {
   const q = state.qIndex;
   if (navigator.vibrate) navigator.vibrate(40);
+  Sound.play('vote');
   socket.emit('vote', choice, (res) => {
     if (res && res.ok) { myVote = { q, choice: res.vote }; render(); }
   });

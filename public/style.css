@@ -179,3 +179,6 @@ button, input { font-family: inherit; }
   .host .brand .logo { font-size: 72px; }
 }
 .host-actions.float { position: fixed; bottom: 28px; left: 28px; z-index: 5; margin: 0; }
+.mute-btn { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--stroke); background: rgba(0,0,0,.3); color: #fff; font-size: 20px; cursor: pointer; opacity: .55; }
+.mute-btn:hover { opacity: 1; }

@@ -5,6 +5,8 @@ const key = new URLSearchParams(location.search).get('key') || '';
 let state = null;
 let authed = null; // null = checking
 let renderedKey = '';
+let lastPlayerCount = 0;
+let lastVotes = 0;
 
 socket.on('connect', () => {
   socket.emit('host:hello', key, (res) => { authed = !!(res && res.ok); renderedKey = ''; render(); });
@@ -104,16 +106,27 @@ function render() {
     return;
   }
   const k = `${state.phase}${state.qIndex}`;
+  const firstRender = renderedKey === '';
   if (k !== renderedKey) {
     renderedKey = k;
     app.innerHTML = { lobby: viewLobby, question: viewQuestion, results: viewResults, final: viewFinal }[state.phase]();
     bind();
     if (state.phase === 'results' && state.result.winner !== 'tie') confetti(70);
     if (state.phase === 'final') confetti(180);
+    // no sounds when the host page is just (re)loaded
+    if (!firstRender) {
+      if (state.phase === 'question') Sound.play('start');
+      if (state.phase === 'results') Sound.play({ megz: 'megz', '3mora': 'amora', tie: 'tie' }[state.result.winner]);
+      if (state.phase === 'final') Sound.play('final');
+    }
   }
 
   if (state.phase === 'question') setTimer(state.remaining, state.duration);
   const online = state.players.filter((p) => p.online);
+  if (!firstRender && state.phase === 'lobby' && state.players.length > lastPlayerCount) Sound.play('join');
+  if (!firstRender && state.phase === 'question' && state.votes > lastVotes) Sound.play('vote');
+  lastPlayerCount = state.players.length;
+  lastVotes = state.phase === 'question' ? state.votes : 0;
   const pc = document.getElementById('pc');
   if (pc) pc.textContent = online.length;
   const vc = document.getElementById('vc');
@@ -130,3 +143,17 @@ function bind() {
   const clear = document.getElementById('clear');
   if (clear) clear.onclick = () => { if (confirm('تمسحي كل اللاعبين؟')) socket.emit('host:clearPlayers'); };
 }
+
+// ---------- countdown tick for the last 5 seconds + mute button ----------
+let lastSecond = null;
+setInterval(() => {
+  if (!state || state.phase !== 'question') { lastSecond = null; return; }
+  const s = Math.ceil(Math.max(0, Timer.end - Date.now()) / 1000);
+  if (s !== lastSecond && s > 0 && s <= 5) Sound.play('tick');
+  lastSecond = s;
+}, 100);
+
+const muteBtn = document.getElementById('mute');
+const paintMute = () => { muteBtn.textContent = Sound.muted ? '🔇' : '🔊'; };
+muteBtn.onclick = (e) => { e.stopPropagation(); Sound.toggle(); paintMute(); muteBtn.blur(); };
+paintMute();
