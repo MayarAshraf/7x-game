@@ -4,7 +4,8 @@
   "description": "7X — Megz vs 3mora | party game by 8X CRM",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "play": "node play.js"
   },
   "engines": {
     "node": ">=18"

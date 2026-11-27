@@ -13,7 +13,25 @@ npm start
 - اللاعبين بيعملوا scan للـ QR اللي على شاشة الهوست.
 - لو عايزة تجربي من موبايلك على نفس الـ Wi-Fi، افتحي شاشة الهوست باللينك اللي فيه الـ IP (بيتطبع في الـ terminal) عشان الـ QR يشاور على اللينك الصح.
 
-## الـ Deploy على Render (مجاني)
+## يوم اللعبة: لينك أونلاين من لابتوبك (مجاني، من غير deploy) ⭐
+
+مرة واحدة بس: افتحي PowerShell كـ **Administrator** وسطّبي cloudflared:
+
+```
+winget install --id Cloudflare.cloudflared -e
+```
+
+(أو نزّلي `cloudflared-windows-amd64.exe` من https://github.com/cloudflare/cloudflared/releases/latest وسمّيه `cloudflared.exe` وحطيه في فولدر `bin/` جوه المشروع.)
+
+وبعد كده كل مرة:
+
+```
+npm run play
+```
+
+هيشغّل اللعبة ويعمل لينك `https://xxxx.trycloudflare.com` ويفتح شاشة الهوست لوحده. سيبي اللابتوب والـ terminal مفتوحين طول اللعبة.
+
+## (اختياري) الـ Deploy على Render
 
 1. ارفعي الفولدر ده على GitHub repo.
 2. ادخلي [render.com](https://render.com) ← **New** ← **Blueprint** ← اختاري الـ repo (هيقرا `render.yaml` لوحده).
